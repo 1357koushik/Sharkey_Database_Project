@@ -79,7 +79,7 @@ INSERT INTO "Booking" VALUES(20,20,'M20','2026-02-20 14:30:00','2026-02-20 17:30
 CREATE TABLE Coach(
     Member_ID TEXT PRIMARY KEY,
     Coach_ID INTEGER NOT NULL UNIQUE,
-    Sport_ID TEXT NOT NULL UNIQUE,
+    Sport_ID TEXT NOT NULL,
     FOREIGN KEY(Member_ID) REFERENCES Member(Member_ID) ON DELETE CASCADE,
     FOREIGN KEY(Sport_ID) REFERENCES Sport(Sport_ID) ON DELETE CASCADE
 );
@@ -335,6 +335,7 @@ CREATE TABLE Player_Stat(
     Metric_Value TEXT NOT NULL,
     Recorded_Date TEXT NOT NULL
         CHECK(strftime('%Y-%m-%d', Recorded_Date) = Recorded_Date),
+    PRIMARY KEY(Member_ID, Metric_Name, Recorded_Date),
     FOREIGN KEY(Member_ID) REFERENCES Player(Member_ID) ON DELETE CASCADE,
     FOREIGN KEY(Event_ID) REFERENCES Event(Event_ID) ON DELETE SET NULL
 );
@@ -441,4 +442,19 @@ INSERT INTO "Team_Roster" VALUES('T19',119);
 INSERT INTO "Team_Roster" VALUES('T20',120);
 DELETE FROM "sqlite_sequence";
 INSERT INTO "sqlite_sequence" VALUES('Booking',20);
+CREATE TRIGGER prevent_booking_overlap
+BEFORE INSERT ON Booking
+FOR EACH ROW
+BEGIN
+    SELECT
+        CASE
+            WHEN EXISTS (
+                SELECT 1 FROM Booking
+                WHERE Facility_ID = NEW.Facility_ID
+                AND NEW.Time_In < Time_Out
+                AND (NEW.Time_Out IS NULL OR NEW.Time_Out > Time_In)
+            )
+            THEN RAISE(ABORT, 'Booking time overlaps with existing booking')
+        END;
+END;
 COMMIT;
