@@ -1,0 +1,27 @@
+[2026-03-19 13:52:44] [FAILURE] user=admin_rakesh member=- role=- action=LOGIN table=- record=- ip=127.0.0.1 details=Invalid credentials
+[2026-03-19 14:01:40] [SUCCESS] user=admin_rakesh member=M31 role=admin action=LOGIN table=UserSession record=- ip=127.0.0.1 details=Login successful
+[2026-03-19 14:01:40] [SUCCESS] user=rahul_sharma member=M01 role=user action=LOGIN table=UserSession record=- ip=127.0.0.1 details=Login successful
+[2026-03-19 14:01:40] [FAILURE] user=wrong member=- role=- action=LOGIN table=- record=- ip=127.0.0.1 details=Invalid credentials
+[2026-03-19 14:01:40] [UNAUTHORIZED] user=rahul_sharma member=M01 role=user action=ADMIN_ACCESS_DENIED table=- record=- ip=127.0.0.1 details=Insufficient privileges
+[2026-03-19 14:01:40] [UNAUTHORIZED] user=rahul_sharma member=M01 role=user action=ADMIN_ACCESS_DENIED table=- record=- ip=127.0.0.1 details=Insufficient privileges
+[2026-03-19 14:01:40] [UNAUTHORIZED] user=rahul_sharma member=M01 role=user action=PORTFOLIO_VIEW table=Member record=M02 ip=127.0.0.1 details=Unauthorized portfolio access
+[2026-03-19 14:01:40] [SUCCESS] user=rahul_sharma member=M01 role=user action=PORTFOLIO_VIEW table=Member record=M01 ip=127.0.0.1 details=Portfolio accessed
+[2026-03-19 18:21:04] [SUCCESS] user=admin_rakesh member=M31 role=admin action=LOGIN table=UserSession record=- ip=127.0.0.1 details=Login successful
+[2026-03-19 18:23:52] [SUCCESS] user=admin_rakesh member=M31 role=admin action=LOGOUT table=UserSession record=- ip=127.0.0.1 details=Logged out
+[2026-03-19 18:24:12] [SUCCESS] user=coach_arvind member=M21 role=user action=LOGIN table=UserSession record=- ip=127.0.0.1 details=Login successful
+[2026-03-19 18:24:16] [SUCCESS] user=coach_arvind member=M21 role=user action=PORTFOLIO_VIEW table=Member record=M21 ip=127.0.0.1 details=Portfolio accessed
+[2026-03-19 18:24:23] [SUCCESS] user=coach_arvind member=M21 role=user action=PORTFOLIO_VIEW table=Member record=M21 ip=127.0.0.1 details=Portfolio accessed
+[2026-03-19 18:24:25] [SUCCESS] user=coach_arvind member=M21 role=user action=PORTFOLIO_VIEW table=Member record=M21 ip=127.0.0.1 details=Portfolio accessed
+[2026-03-19 19:19:09] [SUCCESS] user=admin_rakesh member=M31 role=admin action=LOGIN table=UserSession record=- ip=127.0.0.1 details=Login successful
+[2026-03-19 19:21:52] [SUCCESS] user=admin_rakesh member=M31 role=admin action=LOGOUT table=UserSession record=- ip=127.0.0.1 details=Logged out
+[2026-03-19 19:22:02] [SUCCESS] user=rahul_sharma member=M01 role=user action=LOGIN table=UserSession record=- ip=127.0.0.1 details=Login successful
+[2026-03-19 19:22:04] [SUCCESS] user=rahul_sharma member=M01 role=user action=PORTFOLIO_VIEW table=Member record=M01 ip=127.0.0.1 details=Portfolio accessed
+[2026-03-21 16:06:30] [SUCCESS] user=admin_rakesh member=M31 role=admin action=LOGIN table=UserSession record=- ip=127.0.0.1 details=Login successful
+[2026-03-21 16:20:07] [SUCCESS] user=admin_rakesh member=M31 role=admin action=PORTFOLIO_VIEW table=Member record=M31 ip=127.0.0.1 details=Portfolio accessed
+[2026-03-21 16:20:07] [SUCCESS] user=admin_rakesh member=M31 role=admin action=PORTFOLIO_VIEW table=Member record=M01 ip=127.0.0.1 details=Portfolio accessed
+[2026-03-21 16:37:28] [SUCCESS] user=admin_rakesh member=M31 role=admin action=UPDATE table=Booking record=19 ip=127.0.0.1 details=Updated booking
+[2026-03-22 11:23:57] [SUCCESS] user=admin_rakesh member=M31 role=admin action=LOGIN table=JWT record=- ip=127.0.0.1 details=Login successful
+[2026-03-22 11:24:10] [SUCCESS] user=admin_rakesh member=M31 role=admin action=LOGOUT table=JWT record=- ip=127.0.0.1 details=Logged out
+[2026-03-22 11:24:17] [SUCCESS] user=rahul_sharma member=M01 role=user action=LOGIN table=JWT record=- ip=127.0.0.1 details=Login successful
+[2026-03-22 11:24:19] [SUCCESS] user=rahul_sharma member=M01 role=user action=PORTFOLIO_VIEW table=Member record=M01 ip=127.0.0.1 details=Portfolio accessed
+[2026-03-22 11:24:25] [SUCCESS] user=rahul_sharma member=M01 role=user action=LOGOUT table=JWT record=- ip=127.0.0.1 details=Logged out

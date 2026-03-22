@@ -1,0 +1,9 @@
+graphviz
+matplotlib
+numpy
+pandas
+jupyter
+io
+random
+time
+tracemalloc

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sports Club · IIT Gandhinagar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+  <div id="app">
+    <!-- Login Page -->
+    <div id="page-login" class="page active">
+      <div class="login-bg">
+        <div class="login-glow"></div>
+        <div class="login-card">
+          <div class="login-logo">
+            <span class="logo-icon">⬡</span>
+            <h1>Sports Club</h1>
+            <p>IIT Gandhinagar · CS432</p>
+          </div>
+          <div id="login-error" class="alert alert-error hidden"></div>
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="login-user" placeholder="e.g. admin_rakesh" autocomplete="username"/>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"/>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="doLogin()">Sign In →</button>
+          <div class="login-hint">
+            <span><b>Admin:</b> admin_rakesh / admin123</span>
+            <span><b>User:</b> rahul_sharma / user123</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="page-app" class="page">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <span class="logo-icon">⬡</span>
+          <div>
+            <div class="sidebar-title">Sports Club</div>
+            <div class="sidebar-sub">IITGN</div>
+          </div>
+        </div>
+        <nav class="sidebar-nav" id="sidebar-nav"></nav>
+        <div class="sidebar-footer">
+          <div class="user-info" id="user-info-bar"></div>
+          <button class="btn btn-ghost btn-sm" onclick="doLogout()">Sign Out</button>
+        </div>
+      </aside>
+
+      <main class="main-content" id="main-content">
+        <div id="view-dashboard"   class="view"></div>
+        <div id="view-members"     class="view hidden"></div>
+        <div id="view-portfolio"   class="view hidden"></div>
+        <div id="view-players"     class="view hidden"></div>
+        <div id="view-coaches"     class="view hidden"></div>
+        <div id="view-teams"       class="view hidden"></div>
+        <div id="view-facilities"  class="view hidden"></div>
+        <div id="view-bookings"    class="view hidden"></div>
+        <div id="view-equipment"   class="view hidden"></div>
+        <div id="view-events"      class="view hidden"></div>
+        <div id="view-complaints"  class="view hidden"></div>
+        <div id="view-attendance"  class="view hidden"></div>
+        <div id="view-stats"       class="view hidden"></div>
+        <div id="view-auditlogs"   class="view hidden"></div>
+        <div id="view-benchmark"   class="view hidden"></div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
