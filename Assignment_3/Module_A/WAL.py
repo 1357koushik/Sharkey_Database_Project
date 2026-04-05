@@ -10,8 +10,14 @@ class WAL:
         self.filepath = filepath
         self._lock = threading.Lock()
 
+    def _ensure_parent_dir(self):
+        parent = os.path.dirname(os.path.abspath(self.filepath))
+        if parent:
+            os.makedirs(parent, exist_ok=True)
+
     def _write(self, entry):
         with self._lock:
+            self._ensure_parent_dir()
             with open(self.filepath, "a", encoding="utf-8") as f:
                 f.write(json.dumps(entry) + "\n")
                 f.flush()
@@ -56,6 +62,16 @@ class WAL:
 
     def log_rollback(self, txn_id):
         self._write({"txn_id": txn_id, "op": "ROLLBACK"})
+
+    def log_checkpoint(self, snapshot):
+        checkpoint = {"txn_id": "SYSTEM", "op": "CHECKPOINT", "snapshot": snapshot}
+        with self._lock:
+            self._ensure_parent_dir()
+            with open(self.filepath, "w", encoding="utf-8") as f:
+                f.write(json.dumps(checkpoint) + "\n")
+                f.flush()
+                os.fsync(f.fileno())
+        return checkpoint
 
     def read_all(self):
         if not os.path.exists(self.filepath):

@@ -85,8 +85,8 @@ class WebTransactionManager:
 os.makedirs(LOGS_DIR, exist_ok=True)
 
 dbm = DatabaseManager()
-recover(dbm)
 dbm.wal.filepath = WAL_PATH
+recover(dbm)
 dbm.create_database(DB_NAME)
 dbm.create_table(
     DB_NAME,

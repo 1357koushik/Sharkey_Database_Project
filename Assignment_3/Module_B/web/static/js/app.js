@@ -454,7 +454,7 @@ function renderStressResult(d) {
       <div class="metric-card"><div class="metric-val">${d.successful_bookings}</div><div class="metric-label">Successful Bookings</div></div>
       <div class="metric-card"><div class="metric-val">${d.rejected_bookings}</div><div class="metric-label">Rejected Attempts</div></div>
       <div class="metric-card"><div class="metric-val">${d.final_stock}</div><div class="metric-label">Final Bookings</div></div>
-      <div class="metric-card"><div class="metric-val">${d.orders_created}</div><div class="metric-label">Bookings Created</div></div>
+      <div class="metric-card"><div class="metric-val">${d.bookings_created ?? d.orders_created}</div><div class="metric-label">Bookings Created</div></div>
     </div>
     <div class="stress-summary">
       <div><b>Critical operation:</b> ${d.critical_operation}</div>

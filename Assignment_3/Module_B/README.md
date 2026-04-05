@@ -82,7 +82,7 @@ Module_B/
 | POST | `/api/acid/consistency` | Run Consistency demo |
 | POST | `/api/acid/isolation` | Run Isolation demo |
 | POST | `/api/acid/durability` | Run Durability demo |
-| POST | `/api/acid/multi` | 3-table transaction `{user_id, product_id, inject_fail}` |
+| POST | `/api/acid/multi` | 3-table transaction `{member_id, facility_id, inject_fail}` |
 | POST | `/api/acid/stress` | Race condition correctness test |
 | POST | `/api/stress/load` | High-volume stress/load test |
 | GET | `/api/acid/recover` | Trigger ARIES recovery |
@@ -93,7 +93,12 @@ Module_B/
 
 | Test | Config | Result |
 |---|---|---|
-| Race Condition | 12 threads → 1 product | `stock_delta == committed_txns` |
+| Race Condition | 12 threads → 1 facility slot | single booking survives, others are rejected |
 | Concurrent 3-Table ACID | 12 threads | All commit or rollback cleanly |
 | Load Test | 12T × 30R = 360 ops | 0% error rate |
 | Failure Simulation | 20 crash trials | 20/20 clean rollbacks (100%) |
+
+## Known Limits
+
+- Deadlocks are avoided through consistent lock ordering on table locks, but the engine does not detect arbitrary wait cycles.
+- WAL recovery now supports checkpoints, but checkpoints are snapshot-based because Module A is still an in-memory engine.

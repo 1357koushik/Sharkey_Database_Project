@@ -11,7 +11,7 @@ class TransactionUser(HttpUser):
             tables = data.get("tables", {})
             if not data.get("ok"):
                 resp.failure(data.get("error", "tables request failed"))
-            elif sorted(tables.keys()) != ["Orders", "Products", "Users"]:
+            elif sorted(tables.keys()) != ["Booking", "Complaint", "Facility", "Member"]:
                 resp.failure("tables response missing expected relations")
             else:
                 resp.success()
@@ -48,8 +48,8 @@ class TransactionUser(HttpUser):
                 resp.failure(data.get("error", "race condition request failed"))
             elif data.get("final_stock") != data.get("expected_final_stock"):
                 resp.failure("race condition final stock mismatch")
-            elif data.get("orders_created") != data.get("successful_bookings"):
-                resp.failure("race condition order count mismatch")
+            elif data.get("bookings_created", data.get("orders_created")) != data.get("successful_bookings"):
+                resp.failure("race condition booking count mismatch")
             else:
                 resp.success()
 

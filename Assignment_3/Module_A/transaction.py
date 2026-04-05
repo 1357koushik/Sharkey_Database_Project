@@ -23,6 +23,23 @@ def _safe_get_table(db_manager, db_name, table_name):
     return databases.get(db_name, {}).get(table_name)
 
 
+def _apply_checkpoint_snapshot(db_manager, snapshot):
+    for db_name, tables in snapshot.items():
+        database = getattr(db_manager, "databases", {}).get(db_name)
+        if database is None:
+            continue
+        for table_name, records in tables.items():
+            table = database.get(table_name)
+            if table is None:
+                continue
+            for key, _ in list(table.get_all()):
+                table._raw_delete(key)
+            for record in records:
+                key = record.get(table.search_key)
+                if key is not None:
+                    table._raw_insert(key, record)
+
+
 def _get_lock(db_name, table_name):
     """Return (creating if necessary) the RLock for a specific table."""
     lock_key = f"{db_name}.{table_name}"
@@ -100,6 +117,8 @@ class Transaction:
         self.txn_id   = self._new_id()
         self.undo_log = []
         self.active   = True
+        if hasattr(self.db, "register_transaction"):
+            self.db.register_transaction(self.txn_id)
         self.wal.log_begin(self.txn_id)
         print(f"[TXN {self.txn_id}] BEGIN")
 
@@ -196,7 +215,11 @@ class Transaction:
         self.wal.log_commit(self.txn_id)   # durability: COMMIT written to disk first
         self.undo_log = []
         self.active   = False
+        if hasattr(self.db, "unregister_transaction"):
+            self.db.unregister_transaction(self.txn_id)
         self._release_all()
+        if hasattr(self.db, "maybe_checkpoint"):
+            self.db.maybe_checkpoint()
         print(f"[TXN {self.txn_id}] COMMIT")
 
     # ── ROLLBACK ─────
@@ -224,6 +247,8 @@ class Transaction:
         self.wal.log_rollback(self.txn_id)
         self.undo_log = []
         self.active   = False
+        if hasattr(self.db, "unregister_transaction"):
+            self.db.unregister_transaction(self.txn_id)
         self._release_all()
         print(f"[TXN {self.txn_id}] ROLLBACK complete ✓")
 
@@ -243,11 +268,25 @@ def recover(db_manager, wal=None):
 
     if not entries:
         print("[RECOVERY] WAL is empty — nothing to recover.")
-        return {"status": "clean", "records": 0, "committed": [], "undone": []}
+        return {"status": "clean", "records": 0, "committed": [], "undone": [], "checkpoint": False}
+
+    checkpoint_entry = None
+    checkpoint_index = -1
+    for idx, entry in enumerate(entries):
+        if entry.get("op") == "CHECKPOINT":
+            checkpoint_entry = entry
+            checkpoint_index = idx
+
+    if checkpoint_entry is not None:
+        _apply_checkpoint_snapshot(db_manager, checkpoint_entry.get("snapshot", {}))
+        entries = entries[checkpoint_index + 1:]
+        print("[RECOVERY] Restored latest CHECKPOINT snapshot.")
 
     # ── Group log entries by transaction id ──────────────────────────────────
     txns = {}
     for entry in entries:
+        if entry.get("op") == "CHECKPOINT":
+            continue
         tid = entry["txn_id"]
         if tid not in txns:
             txns[tid] = {"ops": [], "committed": False, "rolled_back": False}
@@ -319,8 +358,9 @@ def recover(db_manager, wal=None):
         print(f"[RECOVERY] {tid} — Undo complete ✓")
 
     return {
-        "status": "recovered",
+        "status": "recovered" if txns or checkpoint_entry is not None else "clean",
         "records": len(entries),
         "committed": committed_ids,
         "undone": loser_ids,
+        "checkpoint": checkpoint_entry is not None,
     }

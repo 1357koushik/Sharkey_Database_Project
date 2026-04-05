@@ -59,6 +59,6 @@ This means:
 
 ## Notes
 
-- The race-condition task checks final stock and order-count correctness.
+- The race-condition task checks final booking-count correctness for the shared facility slot.
 - The stress-load task checks that all internally generated requests completed successfully.
 - You can increase users gradually to hundreds or thousands depending on your machine.

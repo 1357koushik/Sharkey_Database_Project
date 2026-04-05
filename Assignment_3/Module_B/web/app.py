@@ -731,6 +731,7 @@ def demo_stress():
         "rejected_bookings": reject_count,
         "final_stock": len(stress_bookings),
         "expected_final_stock": expected_success,
+        "bookings_created": len(stress_bookings),
         "orders_created": len(stress_bookings),
         "delay_ms": delay_ms,
         "latency_ms": latency_ms,

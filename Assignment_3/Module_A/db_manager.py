@@ -6,6 +6,8 @@ class DatabaseManager:
     def __init__(self):
         self.databases = {}
         self.wal = WAL()               # ← one shared WAL for the whole manager
+        self.active_txns = set()
+        self.checkpoint_threshold = 100
 
     def create_database(self, db_name):
         if db_name in self.databases:
@@ -72,6 +74,37 @@ class DatabaseManager:
         The caller must call txn.begin() before performing any operations.
         """
         return Transaction(self, wal=self.wal)
+
+    def register_transaction(self, txn_id):
+        self.active_txns.add(txn_id)
+
+    def unregister_transaction(self, txn_id):
+        self.active_txns.discard(txn_id)
+
+    def has_active_transactions(self):
+        return bool(self.active_txns)
+
+    def snapshot_state(self):
+        snapshot = {}
+        for db_name, tables in self.databases.items():
+            snapshot[db_name] = {}
+            for table_name, table in tables.items():
+                snapshot[db_name][table_name] = [record for _, record in table.get_all()]
+        return snapshot
+
+    def checkpoint(self):
+        if self.has_active_transactions():
+            return None
+        snapshot = self.snapshot_state()
+        return self.wal.log_checkpoint(snapshot)
+
+    def maybe_checkpoint(self):
+        if self.has_active_transactions():
+            return None
+        entries = self.wal.read_all()
+        if len(entries) < self.checkpoint_threshold:
+            return None
+        return self.checkpoint()
 
     # ── NEW: crash recovery ──────────────────────────────────────────────────
     def recover(self):
