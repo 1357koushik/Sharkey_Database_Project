@@ -1,0 +1,339 @@
+ 
+
+AUTHENTICATION ENDPOINTS
+ 
+
+POST   /login
+       Auth: No
+       Usage: Login with username & password, returns JWT token
+       Body: {"user": "username", "password": "password"}
+
+GET    /isAuth
+       Auth: Yes (JWT)
+       Usage: Check if current session token is valid
+       Returns: User info and token expiry
+
+POST   /logout
+       Auth: Yes (JWT)
+       Usage: Logout and invalidate current JWT token
+
+GET    /
+       Auth: No
+       Usage: Welcome message
+
+GET    /ui
+       Auth: No
+       Usage: Web UI interface
+
+ 
+MEMBERS ENDPOINTS (/members)
+ 
+
+GET    /members/
+       Auth: Login Required
+       Usage: List all members (admins see full details, others limited)
+
+GET    /members/<member_id>
+       Auth: Login Required
+       Usage: Get specific member details
+
+GET    /members/portfolio/<member_id>
+       Auth: Login Required (own only or admin)
+       Usage: Get comprehensive member portfolio including:
+              - Member details
+              - Role type (player/coach/admin)
+              - Teams (if player)
+              - Player statistics (if player)
+              - Attendance records (if player)
+              - Equipment loans
+              - Facility bookings
+              - Complaints filed
+
+POST   /members/
+       Auth: Admin Only
+       Usage: Create new member
+       Body: {"Member_ID", "Name", "Gender", "Email", "Age", "Phone_Number"(opt), "DOB"(opt)}
+
+PUT    /members/<member_id>
+       Auth: Login Required (own profile or admin)
+       Usage: Update member information
+       Body: {"Name", "Email", "Phone_Number", "Age", "DOB"} (any subset)
+
+DELETE /members/<member_id>
+       Auth: Admin Only
+       Usage: Delete member (cascade delete)
+
+ 
+PLAYERS ENDPOINTS (/players)
+ 
+
+GET    /players/
+       Auth: Login Required
+       Usage: List all players with member info
+
+POST   /players/
+       Auth: Admin Only
+       Usage: Create new player record
+       Body: {"Member_ID", "Roll_No", "Height"(opt), "Weight"(opt), "Blood_Group"(opt)}
+
+DELETE /players/<member_id>
+       Auth: Admin Only
+       Usage: Delete player record
+
+ 
+COACHES ENDPOINTS (/coaches)
+ 
+
+GET    /coaches/
+       Auth: Login Required
+       Usage: List all coaches with sport & member info
+
+POST   /coaches/
+       Auth: Admin Only
+       Usage: Create new coach record
+       Body: {"Member_ID", "Coach_ID", "Sport_ID", "Years_Experience"(opt), 
+              "Salary"(opt), "Joining_Date"(opt)}
+
+DELETE /coaches/<member_id>
+       Auth: Admin Only
+       Usage: Delete coach record
+
+ 
+TEAMS ENDPOINTS (/teams)
+ 
+
+GET    /teams/
+       Auth: Login Required
+       Usage: List all teams with sport & coach info
+
+GET    /teams/<team_id>/roster
+       Auth: Login Required
+       Usage: Get team roster (list of players in team)
+
+POST   /teams/
+       Auth: Admin Only
+       Usage: Create new team
+       Body: {"Team_ID", "Team_Name", "Category", "Sport_ID", "Coach_ID"}
+
+DELETE /teams/<team_id>
+       Auth: Admin Only
+       Usage: Delete team
+
+ 
+FACILITIES ENDPOINTS (/facilities)
+ 
+
+GET    /facilities/
+       Auth: Login Required
+       Usage: List all facilities
+
+PUT    /facilities/<facility_id>
+       Auth: Admin Only
+       Usage: Update facility status/description
+       Body: {"Status", "Facility_Description"} (any subset)
+
+ 
+BOOKINGS ENDPOINTS (/bookings)
+ 
+
+GET    /bookings/
+       Auth: Login Required
+       Usage: List bookings (admin sees all, others see own)
+
+POST   /bookings/
+       Auth: Login Required
+       Usage: Create facility booking (own or admin for others)
+       Body: {"Facility_ID", "Time_In", "Time_Out"(opt), "Member_ID"(opt-admin)}
+
+PUT    /bookings/<booking_id>
+       Auth: Login Required (own or admin)
+       Usage: Update booking checkout time
+       Body: {"Time_Out"}
+
+DELETE /bookings/<booking_id>
+       Auth: Login Required (own or admin)
+       Usage: Delete booking
+
+ 
+EQUIPMENT ENDPOINTS (/equipment)
+ 
+
+GET    /equipment/
+       Auth: Login Required
+       Usage: List all equipment with sport info
+
+GET    /equipment/loans
+       Auth: Login Required
+       Usage: List equipment loans (admin sees all, others see own)
+
+POST   /equipment/loans
+       Auth: Login Required
+       Usage: Create equipment loan (own or admin for others)
+       Body: {"Equipment_ID", "Quantity", "Issue_Time", "Member_ID"(opt-admin)}
+
+PUT    /equipment/<equipment_id>
+       Auth: Admin Only
+       Usage: Update equipment details
+       Body: {"Equipment_Name", "Total_Qty", "Status"} (any subset)
+
+DELETE /equipment/<equipment_id>
+       Auth: Admin Only
+       Usage: Delete equipment
+
+ 
+EVENTS ENDPOINTS (/events)
+ 
+
+GET    /events/
+       Auth: Login Required
+       Usage: List all events with facility info (ordered by start time)
+
+POST   /events/
+       Auth: Admin Only
+       Usage: Create new event
+       Body: {"Event_ID", "Event_Name", "Facility_ID", "Description", 
+              "Start_Time", "End_Time", "Attendance_Status"}
+
+PUT    /events/<event_id>
+       Auth: Admin Only
+       Usage: Update event details
+       Body: {"Attendance_Status", "Event_Name", "Description"} (any subset)
+
+DELETE /events/<event_id>
+       Auth: Admin Only
+       Usage: Delete event
+
+ 
+COMPLAINTS ENDPOINTS (/complaints)
+ 
+
+GET    /complaints/
+       Auth: Login Required
+       Usage: List complaints (admin sees all with names, others see own)
+
+POST   /complaints/
+       Auth: Login Required
+       Usage: File new complaint
+       Body: {"Complaint_ID", "Description"}
+
+PUT    /complaints/<complaint_id>
+       Auth: Admin Only
+       Usage: Resolve complaint (sets status to 'Resolved')
+
+DELETE /complaints/<complaint_id>
+       Auth: Admin Only
+       Usage: Delete complaint
+
+ 
+ATTENDANCE ENDPOINTS (/attendance)
+ 
+
+GET    /attendance/
+       Auth: Login Required
+       Usage: List attendance records (admin sees all, others see own)
+
+POST   /attendance/
+       Auth: Admin Only
+       Usage: Mark attendance for a member
+       Body: {"Member_ID", "Session", "Date", "Status"}
+
+ 
+STATS ENDPOINTS (/stats)
+ 
+
+GET    /stats/
+       Auth: Login Required
+       Usage: List player statistics (admin sees all, others see own)
+
+POST   /stats/
+       Auth: Admin Only
+       Usage: Record new player statistic
+       Body: {"Member_ID", "Metric_Name", "Metric_Value", "Recorded_Date", 
+              "Event_ID"(opt)}
+
+PUT    /stats/<member_id>/<metric_name>/<recorded_date>
+       Auth: Admin Only
+       Usage: Update player statistic value
+       Body: {"Metric_Value"}
+
+DELETE /stats/<member_id>/<metric_name>/<recorded_date>
+       Auth: Admin Only
+       Usage: Delete player statistic
+
+ 
+ADMIN ENDPOINTS (/admin)
+ 
+
+GET    /admin/logs
+       Auth: Admin Only
+       Usage: Get audit logs (default 100, use ?limit=N for custom)
+
+GET    /admin/users
+       Auth: Admin Only
+       Usage: List all user accounts with member info
+
+POST   /admin/users
+       Auth: Admin Only
+       Usage: Create new user account
+       Body: {"Member_ID", "Username", "Password", "Role"}
+
+DELETE /admin/users/<user_id>
+       Auth: Admin Only
+       Usage: Delete user account
+
+GET    /admin/benchmark
+       Auth: Admin Only
+       Usage: Run query performance benchmarks (500 iterations each)
+       Returns: Timing data and EXPLAIN plans for key queries
+
+GET    /admin/dashboard
+       Auth: Admin Only
+       Usage: Get dashboard statistics (counts, recent logs)
+       Returns: Total counts for members, players, coaches, teams, events,
+                open complaints, active loans/bookings, and recent audit logs
+
+ 
+AUTHENTICATION LEVELS
+ 
+
+No Auth     : Public endpoint, no authentication required
+Login       : Requires valid JWT token in Authorization header
+Admin Only  : Requires JWT token with admin role
+
+ 
+REQUEST HEADERS
+ 
+
+For authenticated endpoints:
+  Authorization: Bearer <JWT_TOKEN>
+  Content-Type: application/json (for POST/PUT requests)
+
+ 
+COMMON RESPONSE CODES
+ 
+
+200 OK              : Successful GET/PUT request
+201 Created         : Successful POST request
+400 Bad Request     : Missing/invalid parameters
+401 Unauthorized    : Missing/invalid token
+403 Forbidden       : Insufficient permissions
+404 Not Found       : Resource not found
+
+Total API endpoints = 52
+
+Breakdown:
+Authentication: 5
+Members: 6
+Players: 3
+Coaches: 3
+Teams: 4
+Facilities: 2
+Bookings: 4
+Equipment: 5
+Events: 4
+Complaints: 4
+Attendance: 2
+Stats: 4
+Admin: 6
+
+ 

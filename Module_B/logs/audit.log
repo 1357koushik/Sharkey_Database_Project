@@ -25,3 +25,12 @@
 [2026-03-22 11:24:17] [SUCCESS] user=rahul_sharma member=M01 role=user action=LOGIN table=JWT record=- ip=127.0.0.1 details=Login successful
 [2026-03-22 11:24:19] [SUCCESS] user=rahul_sharma member=M01 role=user action=PORTFOLIO_VIEW table=Member record=M01 ip=127.0.0.1 details=Portfolio accessed
 [2026-03-22 11:24:25] [SUCCESS] user=rahul_sharma member=M01 role=user action=LOGOUT table=JWT record=- ip=127.0.0.1 details=Logged out
+[2026-04-02 09:03:33] [SUCCESS] user=admin_rakesh member=M31 role=admin action=LOGIN table=JWT record=- ip=127.0.0.1 details=Login successful
+[2026-04-02 16:01:47] [SUCCESS] user=admin_rakesh member=M31 role=admin action=CREATE table=Event record=- ip=127.0.0.1 details=test
+[2026-04-02 16:02:10] [SUCCESS] user=admin_rakesh member=M31 role=admin action=UPDATE table=Event record=EV20 ip=127.0.0.1 details={'Attendance_Status': 'Cancelled'}
+[2026-04-02 16:04:02] [SUCCESS] user=admin_rakesh member=M31 role=admin action=LOGOUT table=JWT record=- ip=127.0.0.1 details=Logged out
+[2026-04-02 16:41:43] [SUCCESS] user=admin_rakesh member=M31 role=admin action=LOGIN table=JWT record=- ip=127.0.0.1 details=Login successful
+[2026-04-02 16:45:49] [SUCCESS] user=admin_rakesh member=M31 role=admin action=LOGOUT table=JWT record=- ip=127.0.0.1 details=Logged out
+[2026-04-02 16:46:07] [SUCCESS] user=rahul_sharma member=M01 role=user action=LOGIN table=JWT record=- ip=127.0.0.1 details=Login successful
+[2026-04-02 16:46:10] [SUCCESS] user=rahul_sharma member=M01 role=user action=PORTFOLIO_VIEW table=Member record=M01 ip=127.0.0.1 details=Portfolio accessed
+[2026-04-02 16:46:21] [SUCCESS] user=rahul_sharma member=M01 role=user action=PORTFOLIO_VIEW table=Member record=M01 ip=127.0.0.1 details=Portfolio accessed

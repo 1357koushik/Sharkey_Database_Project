@@ -3,18 +3,20 @@ CREATE TABLE Administrator(
     Member_ID TEXT PRIMARY KEY,
     Administrator_ID INTEGER NOT NULL UNIQUE,
     Admin_Level INTEGER CHECK(Admin_Level BETWEEN 1 AND 5),
+    Department TEXT,
+    Office_Location TEXT,
     FOREIGN KEY(Member_ID) REFERENCES Member(Member_ID) ON DELETE CASCADE
 );
-INSERT INTO "Administrator" VALUES('M31',11,2);
-INSERT INTO "Administrator" VALUES('M32',12,3);
-INSERT INTO "Administrator" VALUES('M33',13,1);
-INSERT INTO "Administrator" VALUES('M34',14,2);
-INSERT INTO "Administrator" VALUES('M35',15,3);
-INSERT INTO "Administrator" VALUES('M36',16,1);
-INSERT INTO "Administrator" VALUES('M37',17,2);
-INSERT INTO "Administrator" VALUES('M38',18,3);
-INSERT INTO "Administrator" VALUES('M39',19,1);
-INSERT INTO "Administrator" VALUES('M40',20,2);
+INSERT INTO "Administrator" VALUES('M31',11,2,NULL,NULL);
+INSERT INTO "Administrator" VALUES('M32',12,3,NULL,NULL);
+INSERT INTO "Administrator" VALUES('M33',13,1,NULL,NULL);
+INSERT INTO "Administrator" VALUES('M34',14,2,NULL,NULL);
+INSERT INTO "Administrator" VALUES('M35',15,3,NULL,NULL);
+INSERT INTO "Administrator" VALUES('M36',16,1,NULL,NULL);
+INSERT INTO "Administrator" VALUES('M37',17,2,NULL,NULL);
+INSERT INTO "Administrator" VALUES('M38',18,3,NULL,NULL);
+INSERT INTO "Administrator" VALUES('M39',19,1,NULL,NULL);
+INSERT INTO "Administrator" VALUES('M40',20,2,NULL,NULL);
 CREATE TABLE Attendance(
     Member_ID TEXT NOT NULL,
     Session TEXT NOT NULL,
@@ -80,58 +82,62 @@ CREATE TABLE Coach(
     Member_ID TEXT PRIMARY KEY,
     Coach_ID INTEGER NOT NULL UNIQUE,
     Sport_ID TEXT NOT NULL,
+    Years_Experience INTEGER DEFAULT 0,
+    Salary REAL DEFAULT 0.0,
+    Joining_Date TEXT,
     FOREIGN KEY(Member_ID) REFERENCES Member(Member_ID) ON DELETE CASCADE,
     FOREIGN KEY(Sport_ID) REFERENCES Sport(Sport_ID) ON DELETE CASCADE
 );
-INSERT INTO "Coach" VALUES('M21',1,'S01');
-INSERT INTO "Coach" VALUES('M22',2,'S02');
-INSERT INTO "Coach" VALUES('M23',3,'S03');
-INSERT INTO "Coach" VALUES('M24',4,'S04');
-INSERT INTO "Coach" VALUES('M25',5,'S05');
-INSERT INTO "Coach" VALUES('M26',6,'S06');
-INSERT INTO "Coach" VALUES('M27',7,'S07');
-INSERT INTO "Coach" VALUES('M28',8,'S08');
-INSERT INTO "Coach" VALUES('M29',9,'S09');
-INSERT INTO "Coach" VALUES('M30',10,'S10');
-INSERT INTO "Coach" VALUES('M31',11,'S11');
-INSERT INTO "Coach" VALUES('M32',12,'S12');
-INSERT INTO "Coach" VALUES('M33',13,'S13');
-INSERT INTO "Coach" VALUES('M34',14,'S14');
-INSERT INTO "Coach" VALUES('M35',15,'S15');
-INSERT INTO "Coach" VALUES('M36',16,'S16');
-INSERT INTO "Coach" VALUES('M37',17,'S17');
-INSERT INTO "Coach" VALUES('M38',18,'S18');
-INSERT INTO "Coach" VALUES('M39',19,'S19');
-INSERT INTO "Coach" VALUES('M40',20,'S20');
+INSERT INTO "Coach" VALUES('M21',1,'S01',0,0.0,NULL);
+INSERT INTO "Coach" VALUES('M22',2,'S02',0,0.0,NULL);
+INSERT INTO "Coach" VALUES('M23',3,'S03',0,0.0,NULL);
+INSERT INTO "Coach" VALUES('M24',4,'S04',0,0.0,NULL);
+INSERT INTO "Coach" VALUES('M25',5,'S05',0,0.0,NULL);
+INSERT INTO "Coach" VALUES('M26',6,'S06',0,0.0,NULL);
+INSERT INTO "Coach" VALUES('M27',7,'S07',0,0.0,NULL);
+INSERT INTO "Coach" VALUES('M28',8,'S08',0,0.0,NULL);
+INSERT INTO "Coach" VALUES('M29',9,'S09',0,0.0,NULL);
+INSERT INTO "Coach" VALUES('M30',10,'S10',0,0.0,NULL);
+INSERT INTO "Coach" VALUES('M31',11,'S11',0,0.0,NULL);
+INSERT INTO "Coach" VALUES('M32',12,'S12',0,0.0,NULL);
+INSERT INTO "Coach" VALUES('M33',13,'S13',0,0.0,NULL);
+INSERT INTO "Coach" VALUES('M34',14,'S14',0,0.0,NULL);
+INSERT INTO "Coach" VALUES('M35',15,'S15',0,0.0,NULL);
+INSERT INTO "Coach" VALUES('M36',16,'S16',0,0.0,NULL);
+INSERT INTO "Coach" VALUES('M37',17,'S17',0,0.0,NULL);
+INSERT INTO "Coach" VALUES('M38',18,'S18',0,0.0,NULL);
+INSERT INTO "Coach" VALUES('M39',19,'S19',0,0.0,NULL);
+INSERT INTO "Coach" VALUES('M40',20,'S20',0,0.0,NULL);
 CREATE TABLE Complaint(
     Complaint_ID TEXT PRIMARY KEY,
     Raised_By TEXT NOT NULL,
     Description TEXT NOT NULL,
     Status TEXT NOT NULL CHECK(Status IN ('Open','Resolved')),
+    Date_Filed TEXT NOT NULL DEFAULT (date('now')),
     Resolved_By TEXT,
     FOREIGN KEY(Raised_By) REFERENCES Member(Member_ID) ON DELETE CASCADE,
     FOREIGN KEY(Resolved_By) REFERENCES Administrator(Member_ID) ON DELETE SET NULL
 );
-INSERT INTO "Complaint" VALUES('C01','M01','Football goal net torn','Resolved','M31');
-INSERT INTO "Complaint" VALUES('C02','M02','Basketball scoreboard not working','Resolved','M32');
-INSERT INTO "Complaint" VALUES('C03','M03','Cricket pitch crack detected','Open',NULL);
-INSERT INTO "Complaint" VALUES('C04','M04','Pool tile crack near deep end','Resolved','M33');
-INSERT INTO "Complaint" VALUES('C05','M05','Badminton net sagging','Open',NULL);
-INSERT INTO "Complaint" VALUES('C06','M06','Tennis floodlight failure','Resolved','M34');
-INSERT INTO "Complaint" VALUES('C07','M07','Volleyball court sand uneven','Resolved','M35');
-INSERT INTO "Complaint" VALUES('C08','M08','TT table surface chipped','Open',NULL);
-INSERT INTO "Complaint" VALUES('C09','M09','Athletics lane marking faded','Resolved','M36');
-INSERT INTO "Complaint" VALUES('C10','M10','Hockey turf peeling','Open',NULL);
-INSERT INTO "Complaint" VALUES('C11','M11','Kabaddi mat torn','Resolved','M37');
-INSERT INTO "Complaint" VALUES('C12','M12','Chess hall AC failure','Open',NULL);
-INSERT INTO "Complaint" VALUES('C13','M13','Baseball mound erosion','Resolved','M38');
-INSERT INTO "Complaint" VALUES('C14','M14','Handball goalpost loose','Resolved','M39');
-INSERT INTO "Complaint" VALUES('C15','M15','Rugby ground waterlogging','Open',NULL);
-INSERT INTO "Complaint" VALUES('C16','M16','Boxing rope loose','Resolved','M40');
-INSERT INTO "Complaint" VALUES('C17','M17','Gymnastics beam padding worn','Open',NULL);
-INSERT INTO "Complaint" VALUES('C18','M18','Skating track surface crack','Resolved','M31');
-INSERT INTO "Complaint" VALUES('C19','M19','Archery stand unstable','Resolved','M32');
-INSERT INTO "Complaint" VALUES('C20','M20','Cycling track wooden panel lifted','Open',NULL);
+INSERT INTO "Complaint" VALUES('C01','M01','Football goal net torn','Resolved','2026-02-01','M31');
+INSERT INTO "Complaint" VALUES('C02','M02','Basketball scoreboard not working','Resolved','2026-02-01','M32');
+INSERT INTO "Complaint" VALUES('C03','M03','Cricket pitch crack detected','Open','2026-02-01',NULL);
+INSERT INTO "Complaint" VALUES('C04','M04','Pool tile crack near deep end','Resolved','2026-02-01','M33');
+INSERT INTO "Complaint" VALUES('C05','M05','Badminton net sagging','Open','2026-02-01',NULL);
+INSERT INTO "Complaint" VALUES('C06','M06','Tennis floodlight failure','Resolved','2026-02-01','M34');
+INSERT INTO "Complaint" VALUES('C07','M07','Volleyball court sand uneven','Resolved','2026-02-01','M35');
+INSERT INTO "Complaint" VALUES('C08','M08','TT table surface chipped','Open','2026-02-01',NULL);
+INSERT INTO "Complaint" VALUES('C09','M09','Athletics lane marking faded','Resolved','2026-02-01','M36');
+INSERT INTO "Complaint" VALUES('C10','M10','Hockey turf peeling','Open','2026-02-01',NULL);
+INSERT INTO "Complaint" VALUES('C11','M11','Kabaddi mat torn','Resolved','2026-02-01','M37');
+INSERT INTO "Complaint" VALUES('C12','M12','Chess hall AC failure','Open','2026-02-01',NULL);
+INSERT INTO "Complaint" VALUES('C13','M13','Baseball mound erosion','Resolved','2026-02-01','M38');
+INSERT INTO "Complaint" VALUES('C14','M14','Handball goalpost loose','Resolved','2026-02-01','M39');
+INSERT INTO "Complaint" VALUES('C15','M15','Rugby ground waterlogging','Open','2026-02-01',NULL);
+INSERT INTO "Complaint" VALUES('C16','M16','Boxing rope loose','Resolved','2026-02-01','M40');
+INSERT INTO "Complaint" VALUES('C17','M17','Gymnastics beam padding worn','Open','2026-02-01',NULL);
+INSERT INTO "Complaint" VALUES('C18','M18','Skating track surface crack','Resolved','2026-02-01','M31');
+INSERT INTO "Complaint" VALUES('C19','M19','Archery stand unstable','Resolved','2026-02-01','M32');
+INSERT INTO "Complaint" VALUES('C20','M20','Cycling track wooden panel lifted','Open','2026-02-01',NULL);
 CREATE TABLE Equipment(
     Equipment_ID TEXT PRIMARY KEY,
     Equipment_Name TEXT NOT NULL,
@@ -228,6 +234,53 @@ INSERT INTO "Event" VALUES('EV17','Hallabol Day 17',17,'Day 17 of Hallabol featu
 INSERT INTO "Event" VALUES('EV18','Hallabol Day 18',18,'Day 18 of Hallabol featuring major matches','2026-02-19 00:00:00','2026-02-19 03:00:00','Completed');
 INSERT INTO "Event" VALUES('EV19','Hallabol Day 19',19,'Day 19 of Hallabol featuring major matches','2026-02-20 00:00:00','2026-02-20 03:00:00','Completed');
 INSERT INTO "Event" VALUES('EV20','Hallabol Day 20',20,'Day 20 of Hallabol featuring major matches','2026-02-21 00:00:00','2026-02-21 03:00:00','Completed');
+CREATE TABLE Event_Team (
+    Event_ID TEXT NOT NULL,
+    Team_ID TEXT NOT NULL,
+    PRIMARY KEY (Event_ID, Team_ID),
+    FOREIGN KEY (Event_ID) REFERENCES Event(Event_ID) ON DELETE CASCADE,
+    FOREIGN KEY (Team_ID) REFERENCES Team(Team_ID) ON DELETE CASCADE
+);
+INSERT INTO "Event_Team" VALUES('EV01','T01');
+INSERT INTO "Event_Team" VALUES('EV01','T02');
+INSERT INTO "Event_Team" VALUES('EV02','T03');
+INSERT INTO "Event_Team" VALUES('EV02','T04');
+INSERT INTO "Event_Team" VALUES('EV03','T05');
+INSERT INTO "Event_Team" VALUES('EV03','T06');
+INSERT INTO "Event_Team" VALUES('EV04','T07');
+INSERT INTO "Event_Team" VALUES('EV04','T08');
+INSERT INTO "Event_Team" VALUES('EV05','T08');
+INSERT INTO "Event_Team" VALUES('EV05','T05');
+INSERT INTO "Event_Team" VALUES('EV06','T09');
+INSERT INTO "Event_Team" VALUES('EV06','T06');
+INSERT INTO "Event_Team" VALUES('EV07','T10');
+INSERT INTO "Event_Team" VALUES('EV07','T07');
+INSERT INTO "Event_Team" VALUES('EV08','T11');
+INSERT INTO "Event_Team" VALUES('EV08','T08');
+INSERT INTO "Event_Team" VALUES('EV09','T12');
+INSERT INTO "Event_Team" VALUES('EV09','T09');
+INSERT INTO "Event_Team" VALUES('EV10','T13');
+INSERT INTO "Event_Team" VALUES('EV10','T10');
+INSERT INTO "Event_Team" VALUES('EV11','T14');
+INSERT INTO "Event_Team" VALUES('EV11','T11');
+INSERT INTO "Event_Team" VALUES('EV12','T15');
+INSERT INTO "Event_Team" VALUES('EV12','T12');
+INSERT INTO "Event_Team" VALUES('EV13','T16');
+INSERT INTO "Event_Team" VALUES('EV13','T13');
+INSERT INTO "Event_Team" VALUES('EV14','T17');
+INSERT INTO "Event_Team" VALUES('EV14','T14');
+INSERT INTO "Event_Team" VALUES('EV15','T18');
+INSERT INTO "Event_Team" VALUES('EV15','T15');
+INSERT INTO "Event_Team" VALUES('EV16','T19');
+INSERT INTO "Event_Team" VALUES('EV16','T16');
+INSERT INTO "Event_Team" VALUES('EV17','T20');
+INSERT INTO "Event_Team" VALUES('EV17','T17');
+INSERT INTO "Event_Team" VALUES('EV18','T01');
+INSERT INTO "Event_Team" VALUES('EV18','T18');
+INSERT INTO "Event_Team" VALUES('EV19','T02');
+INSERT INTO "Event_Team" VALUES('EV19','T19');
+INSERT INTO "Event_Team" VALUES('EV20','T03');
+INSERT INTO "Event_Team" VALUES('EV20','T20');
 CREATE TABLE Facility(
     Facility_ID INTEGER PRIMARY KEY,
     Facility_Name TEXT NOT NULL UNIQUE,
@@ -261,73 +314,77 @@ CREATE TABLE Member(
     Email TEXT NOT NULL UNIQUE,
     Phone_Number TEXT UNIQUE,
     Age INTEGER NOT NULL CHECK(Age > 0),
+    DOB TEXT,
     Image BLOB
 );
-INSERT INTO "Member" VALUES('M01','Rahul Sharma','M','user1@iitgn.ac.in','900000001',18,NULL);
-INSERT INTO "Member" VALUES('M02','Neha Singh','F','user2@iitgn.ac.in','900000002',19,NULL);
-INSERT INTO "Member" VALUES('M03','Aman Verma','M','user3@iitgn.ac.in','900000003',20,NULL);
-INSERT INTO "Member" VALUES('M04','Priya Mehta','F','user4@iitgn.ac.in','900000004',21,NULL);
-INSERT INTO "Member" VALUES('M05','Rohan Das','M','user5@iitgn.ac.in','900000005',22,NULL);
-INSERT INTO "Member" VALUES('M06','Kavya Iyer','F','user6@iitgn.ac.in','900000006',23,NULL);
-INSERT INTO "Member" VALUES('M07','Arjun Patel','M','user7@iitgn.ac.in','900000007',24,NULL);
-INSERT INTO "Member" VALUES('M08','Sneha Rao','F','user8@iitgn.ac.in','900000008',25,NULL);
-INSERT INTO "Member" VALUES('M09','Vikram Joshi','M','user9@iitgn.ac.in','900000009',26,NULL);
-INSERT INTO "Member" VALUES('M10','Anjali Kapoor','F','user10@iitgn.ac.in','900000010',27,NULL);
-INSERT INTO "Member" VALUES('M11','Ritesh Kumar','M','user11@iitgn.ac.in','900000011',28,NULL);
-INSERT INTO "Member" VALUES('M12','Pooja Nair','F','user12@iitgn.ac.in','900000012',29,NULL);
-INSERT INTO "Member" VALUES('M13','Sarthak Jain','M','user13@iitgn.ac.in','900000013',30,NULL);
-INSERT INTO "Member" VALUES('M14','Ishita Gupta','F','user14@iitgn.ac.in','900000014',31,NULL);
-INSERT INTO "Member" VALUES('M15','Manav Shah','M','user15@iitgn.ac.in','900000015',32,NULL);
-INSERT INTO "Member" VALUES('M16','Simran Kaur','F','user16@iitgn.ac.in','900000016',33,NULL);
-INSERT INTO "Member" VALUES('M17','Aditya Rao','M','user17@iitgn.ac.in','900000017',34,NULL);
-INSERT INTO "Member" VALUES('M18','Tanvi Desai','F','user18@iitgn.ac.in','900000018',35,NULL);
-INSERT INTO "Member" VALUES('M19','Yash Malhotra','M','user19@iitgn.ac.in','900000019',36,NULL);
-INSERT INTO "Member" VALUES('M20','Meera Pillai','F','user20@iitgn.ac.in','900000020',37,NULL);
-INSERT INTO "Member" VALUES('M21','Coach Arvind','M','user21@iitgn.ac.in','900000021',18,NULL);
-INSERT INTO "Member" VALUES('M22','Coach Meena','F','user22@iitgn.ac.in','900000022',19,NULL);
-INSERT INTO "Member" VALUES('M23','Coach Rakesh','M','user23@iitgn.ac.in','900000023',20,NULL);
-INSERT INTO "Member" VALUES('M24','Coach Nitin','F','user24@iitgn.ac.in','900000024',21,NULL);
-INSERT INTO "Member" VALUES('M25','Coach Kavita','M','user25@iitgn.ac.in','900000025',22,NULL);
-INSERT INTO "Member" VALUES('M26','Coach Farhan','F','user26@iitgn.ac.in','900000026',23,NULL);
-INSERT INTO "Member" VALUES('M27','Coach Dev','M','user27@iitgn.ac.in','900000027',24,NULL);
-INSERT INTO "Member" VALUES('M28','Coach Sunil','F','user28@iitgn.ac.in','900000028',25,NULL);
-INSERT INTO "Member" VALUES('M29','Coach Harsh','M','user29@iitgn.ac.in','900000029',26,NULL);
-INSERT INTO "Member" VALUES('M30','Coach Divya','F','user30@iitgn.ac.in','900000030',27,NULL);
-INSERT INTO "Member" VALUES('M31','Admin Rakesh','M','user31@iitgn.ac.in','900000031',28,NULL);
-INSERT INTO "Member" VALUES('M32','Admin Pooja','F','user32@iitgn.ac.in','900000032',29,NULL);
-INSERT INTO "Member" VALUES('M33','Admin Suresh','M','user33@iitgn.ac.in','900000033',30,NULL);
-INSERT INTO "Member" VALUES('M34','Admin Anjali','F','user34@iitgn.ac.in','900000034',31,NULL);
-INSERT INTO "Member" VALUES('M35','Admin Vivek','M','user35@iitgn.ac.in','900000035',32,NULL);
-INSERT INTO "Member" VALUES('M36','Admin Megha','F','user36@iitgn.ac.in','900000036',33,NULL);
-INSERT INTO "Member" VALUES('M37','Admin Deepak','M','user37@iitgn.ac.in','900000037',34,NULL);
-INSERT INTO "Member" VALUES('M38','Admin Ritu','F','user38@iitgn.ac.in','900000038',35,NULL);
-INSERT INTO "Member" VALUES('M39','Admin Karan','M','user39@iitgn.ac.in','900000039',36,NULL);
-INSERT INTO "Member" VALUES('M40','Admin Aarti','F','user40@iitgn.ac.in','900000040',37,NULL);
+INSERT INTO "Member" VALUES('M01','Rahul Sharma','M','user1@iitgn.ac.in','900000001',18,NULL,NULL);
+INSERT INTO "Member" VALUES('M02','Neha Singh','F','user2@iitgn.ac.in','900000002',19,NULL,NULL);
+INSERT INTO "Member" VALUES('M03','Aman Verma','M','user3@iitgn.ac.in','900000003',20,NULL,NULL);
+INSERT INTO "Member" VALUES('M04','Priya Mehta','F','user4@iitgn.ac.in','900000004',21,NULL,NULL);
+INSERT INTO "Member" VALUES('M05','Rohan Das','M','user5@iitgn.ac.in','900000005',22,NULL,NULL);
+INSERT INTO "Member" VALUES('M06','Kavya Iyer','F','user6@iitgn.ac.in','900000006',23,NULL,NULL);
+INSERT INTO "Member" VALUES('M07','Arjun Patel','M','user7@iitgn.ac.in','900000007',24,NULL,NULL);
+INSERT INTO "Member" VALUES('M08','Sneha Rao','F','user8@iitgn.ac.in','900000008',25,NULL,NULL);
+INSERT INTO "Member" VALUES('M09','Vikram Joshi','M','user9@iitgn.ac.in','900000009',26,NULL,NULL);
+INSERT INTO "Member" VALUES('M10','Anjali Kapoor','F','user10@iitgn.ac.in','900000010',27,NULL,NULL);
+INSERT INTO "Member" VALUES('M11','Ritesh Kumar','M','user11@iitgn.ac.in','900000011',28,NULL,NULL);
+INSERT INTO "Member" VALUES('M12','Pooja Nair','F','user12@iitgn.ac.in','900000012',29,NULL,NULL);
+INSERT INTO "Member" VALUES('M13','Sarthak Jain','M','user13@iitgn.ac.in','900000013',30,NULL,NULL);
+INSERT INTO "Member" VALUES('M14','Ishita Gupta','F','user14@iitgn.ac.in','900000014',31,NULL,NULL);
+INSERT INTO "Member" VALUES('M15','Manav Shah','M','user15@iitgn.ac.in','900000015',32,NULL,NULL);
+INSERT INTO "Member" VALUES('M16','Simran Kaur','F','user16@iitgn.ac.in','900000016',33,NULL,NULL);
+INSERT INTO "Member" VALUES('M17','Aditya Rao','M','user17@iitgn.ac.in','900000017',34,NULL,NULL);
+INSERT INTO "Member" VALUES('M18','Tanvi Desai','F','user18@iitgn.ac.in','900000018',35,NULL,NULL);
+INSERT INTO "Member" VALUES('M19','Yash Malhotra','M','user19@iitgn.ac.in','900000019',36,NULL,NULL);
+INSERT INTO "Member" VALUES('M20','Meera Pillai','F','user20@iitgn.ac.in','900000020',37,NULL,NULL);
+INSERT INTO "Member" VALUES('M21','Coach Arvind','M','user21@iitgn.ac.in','900000021',18,NULL,NULL);
+INSERT INTO "Member" VALUES('M22','Coach Meena','F','user22@iitgn.ac.in','900000022',19,NULL,NULL);
+INSERT INTO "Member" VALUES('M23','Coach Rakesh','M','user23@iitgn.ac.in','900000023',20,NULL,NULL);
+INSERT INTO "Member" VALUES('M24','Coach Nitin','F','user24@iitgn.ac.in','900000024',21,NULL,NULL);
+INSERT INTO "Member" VALUES('M25','Coach Kavita','M','user25@iitgn.ac.in','900000025',22,NULL,NULL);
+INSERT INTO "Member" VALUES('M26','Coach Farhan','F','user26@iitgn.ac.in','900000026',23,NULL,NULL);
+INSERT INTO "Member" VALUES('M27','Coach Dev','M','user27@iitgn.ac.in','900000027',24,NULL,NULL);
+INSERT INTO "Member" VALUES('M28','Coach Sunil','F','user28@iitgn.ac.in','900000028',25,NULL,NULL);
+INSERT INTO "Member" VALUES('M29','Coach Harsh','M','user29@iitgn.ac.in','900000029',26,NULL,NULL);
+INSERT INTO "Member" VALUES('M30','Coach Divya','F','user30@iitgn.ac.in','900000030',27,NULL,NULL);
+INSERT INTO "Member" VALUES('M31','Admin Rakesh','M','user31@iitgn.ac.in','900000031',28,NULL,NULL);
+INSERT INTO "Member" VALUES('M32','Admin Pooja','F','user32@iitgn.ac.in','900000032',29,NULL,NULL);
+INSERT INTO "Member" VALUES('M33','Admin Suresh','M','user33@iitgn.ac.in','900000033',30,NULL,NULL);
+INSERT INTO "Member" VALUES('M34','Admin Anjali','F','user34@iitgn.ac.in','900000034',31,NULL,NULL);
+INSERT INTO "Member" VALUES('M35','Admin Vivek','M','user35@iitgn.ac.in','900000035',32,NULL,NULL);
+INSERT INTO "Member" VALUES('M36','Admin Megha','F','user36@iitgn.ac.in','900000036',33,NULL,NULL);
+INSERT INTO "Member" VALUES('M37','Admin Deepak','M','user37@iitgn.ac.in','900000037',34,NULL,NULL);
+INSERT INTO "Member" VALUES('M38','Admin Ritu','F','user38@iitgn.ac.in','900000038',35,NULL,NULL);
+INSERT INTO "Member" VALUES('M39','Admin Karan','M','user39@iitgn.ac.in','900000039',36,NULL,NULL);
+INSERT INTO "Member" VALUES('M40','Admin Aarti','F','user40@iitgn.ac.in','900000040',37,NULL,NULL);
 CREATE TABLE Player(
     Member_ID TEXT PRIMARY KEY,
     Roll_No INTEGER NOT NULL UNIQUE,
+    Height REAL,
+    Weight REAL,
+    Blood_Group TEXT CHECK(Blood_Group IN ('A+','A-','B+','B-','AB+','AB-','O+','O-')),
     FOREIGN KEY(Member_ID) REFERENCES Member(Member_ID) ON DELETE CASCADE
 );
-INSERT INTO "Player" VALUES('M01',101);
-INSERT INTO "Player" VALUES('M02',102);
-INSERT INTO "Player" VALUES('M03',103);
-INSERT INTO "Player" VALUES('M04',104);
-INSERT INTO "Player" VALUES('M05',105);
-INSERT INTO "Player" VALUES('M06',106);
-INSERT INTO "Player" VALUES('M07',107);
-INSERT INTO "Player" VALUES('M08',108);
-INSERT INTO "Player" VALUES('M09',109);
-INSERT INTO "Player" VALUES('M10',110);
-INSERT INTO "Player" VALUES('M11',111);
-INSERT INTO "Player" VALUES('M12',112);
-INSERT INTO "Player" VALUES('M13',113);
-INSERT INTO "Player" VALUES('M14',114);
-INSERT INTO "Player" VALUES('M15',115);
-INSERT INTO "Player" VALUES('M16',116);
-INSERT INTO "Player" VALUES('M17',117);
-INSERT INTO "Player" VALUES('M18',118);
-INSERT INTO "Player" VALUES('M19',119);
-INSERT INTO "Player" VALUES('M20',120);
+INSERT INTO "Player" VALUES('M01',101,NULL,NULL,NULL);
+INSERT INTO "Player" VALUES('M02',102,NULL,NULL,NULL);
+INSERT INTO "Player" VALUES('M03',103,NULL,NULL,NULL);
+INSERT INTO "Player" VALUES('M04',104,NULL,NULL,NULL);
+INSERT INTO "Player" VALUES('M05',105,NULL,NULL,NULL);
+INSERT INTO "Player" VALUES('M06',106,NULL,NULL,NULL);
+INSERT INTO "Player" VALUES('M07',107,NULL,NULL,NULL);
+INSERT INTO "Player" VALUES('M08',108,NULL,NULL,NULL);
+INSERT INTO "Player" VALUES('M09',109,NULL,NULL,NULL);
+INSERT INTO "Player" VALUES('M10',110,NULL,NULL,NULL);
+INSERT INTO "Player" VALUES('M11',111,NULL,NULL,NULL);
+INSERT INTO "Player" VALUES('M12',112,NULL,NULL,NULL);
+INSERT INTO "Player" VALUES('M13',113,NULL,NULL,NULL);
+INSERT INTO "Player" VALUES('M14',114,NULL,NULL,NULL);
+INSERT INTO "Player" VALUES('M15',115,NULL,NULL,NULL);
+INSERT INTO "Player" VALUES('M16',116,NULL,NULL,NULL);
+INSERT INTO "Player" VALUES('M17',117,NULL,NULL,NULL);
+INSERT INTO "Player" VALUES('M18',118,NULL,NULL,NULL);
+INSERT INTO "Player" VALUES('M19',119,NULL,NULL,NULL);
+INSERT INTO "Player" VALUES('M20',120,NULL,NULL,NULL);
 CREATE TABLE Player_Stat(
     Member_ID TEXT NOT NULL,
     Event_ID TEXT,
@@ -440,21 +497,73 @@ INSERT INTO "Team_Roster" VALUES('T17',117);
 INSERT INTO "Team_Roster" VALUES('T18',118);
 INSERT INTO "Team_Roster" VALUES('T19',119);
 INSERT INTO "Team_Roster" VALUES('T20',120);
-DELETE FROM "sqlite_sequence";
-INSERT INTO "sqlite_sequence" VALUES('Booking',20);
 CREATE TRIGGER prevent_booking_overlap
 BEFORE INSERT ON Booking
 FOR EACH ROW
 BEGIN
-    SELECT
-        CASE
-            WHEN EXISTS (
-                SELECT 1 FROM Booking
-                WHERE Facility_ID = NEW.Facility_ID
-                AND NEW.Time_In < Time_Out
-                AND (NEW.Time_Out IS NULL OR NEW.Time_Out > Time_In)
-            )
-            THEN RAISE(ABORT, 'Booking time overlaps with existing booking')
-        END;
+  SELECT 
+    CASE 
+      WHEN EXISTS (
+        SELECT 1 FROM Booking
+        WHERE Facility_ID = NEW.Facility_ID
+          AND (
+            NEW.Time_In < IFNULL(Time_Out, '9999-12-31 23:59:59')
+            AND IFNULL(NEW.Time_Out, '9999-12-31 23:59:59') > Time_In
+          )
+      )
+      THEN RAISE(ABORT, 'Booking time conflict')
+    END;
 END;
+CREATE TRIGGER check_equipment_availability
+BEFORE INSERT ON Equipment_Loan
+FOR EACH ROW
+BEGIN
+  SELECT 
+    CASE 
+      WHEN (
+        (SELECT IFNULL(SUM(Quantity), 0)
+         FROM Equipment_Loan
+         WHERE Equipment_ID = NEW.Equipment_ID
+           AND Return_Time IS NULL)
+        + NEW.Quantity
+      ) > (
+        SELECT Total_Qty 
+        FROM Equipment 
+        WHERE Equipment_ID = NEW.Equipment_ID
+      )
+      THEN RAISE(ABORT, 'Not enough equipment available')
+    END;
+END;
+CREATE TRIGGER prevent_player_multi_role
+BEFORE INSERT ON Player
+FOR EACH ROW
+BEGIN
+  SELECT CASE
+    WHEN EXISTS (SELECT 1 FROM Coach WHERE Member_ID = NEW.Member_ID)
+      OR EXISTS (SELECT 1 FROM Administrator WHERE Member_ID = NEW.Member_ID)
+    THEN RAISE(ABORT, 'Member already assigned another role')
+  END;
+END;
+CREATE TRIGGER prevent_coach_multi_role
+BEFORE INSERT ON Coach
+FOR EACH ROW
+BEGIN
+  SELECT CASE
+    WHEN EXISTS (SELECT 1 FROM Player WHERE Member_ID = NEW.Member_ID)
+      OR EXISTS (SELECT 1 FROM Administrator WHERE Member_ID = NEW.Member_ID)
+    THEN RAISE(ABORT, 'Member already assigned another role')
+  END;
+END;
+CREATE TRIGGER prevent_admin_multi_role
+BEFORE INSERT ON Administrator
+FOR EACH ROW
+BEGIN
+  SELECT CASE
+    WHEN EXISTS (SELECT 1 FROM Player WHERE Member_ID = NEW.Member_ID)
+      OR EXISTS (SELECT 1 FROM Coach WHERE Member_ID = NEW.Member_ID)
+    THEN RAISE(ABORT, 'Member already assigned another role')
+  END;
+END;
+DELETE FROM "sqlite_sequence";
+INSERT INTO "sqlite_sequence" VALUES('Booking',20);
 COMMIT;

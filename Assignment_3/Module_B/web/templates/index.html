@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Assignment 3 — Transaction Management · CS432 IITGN</title>
+<link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ── Sidebar ──────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">⬡</div>
+      <div>
+        <div class="brand-title">Sharkey</div>
+        <div class="brand-sub">Transaction Demo</div>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-label">ACID Tests</div>
+      <a class="nav-item active" data-view="dashboard"    onclick="nav('dashboard')">📊 Dashboard</a>
+      <a class="nav-item"        data-view="atomicity"    onclick="nav('atomicity')">💥 Atomicity</a>
+      <a class="nav-item"        data-view="consistency"  onclick="nav('consistency')">✅ Consistency</a>
+      <a class="nav-item"        data-view="isolation"    onclick="nav('isolation')">🔒 Isolation</a>
+      <a class="nav-item"        data-view="durability"   onclick="nav('durability')">🔨 Durability</a>
+      <a class="nav-item"        data-view="multi"        onclick="nav('multi')">🔗 3-Table Txn</a>
+
+      <div class="nav-label" style="margin-top:18px">Other</div>
+      <a class="nav-item" data-view="manual"   onclick="nav('manual')">🛠 Manual Txn</a>
+      <a class="nav-item" data-view="tables"   onclick="nav('tables')">📅 Live Tables</a>
+      <a class="nav-item" data-view="wal"      onclick="nav('wal')">🧾 WAL Log</a>
+      <a class="nav-item" data-view="recovery" onclick="nav('recovery')">♻️ Recovery</a>
+      <a class="nav-item" data-view="stress"   onclick="nav('stress')">🏁 Race Condition</a>
+      <a class="nav-item" data-view="loadtest" onclick="nav('loadtest')">⚙️ Stress Test</a>
+    </nav>
+  </aside>
+
+  <!-- ── Main ─────────────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div id="view-dashboard" class="view active">
+      <div class="page-hdr">
+        <h1>Transaction Management <span>Dashboard</span></h1>
+      </div>
+
+      <div class="card" style="margin-top:0">
+        <div class="card-title">Architecture Overview</div>
+        <div class="arch-grid">
+          <div class="arch-box accent">
+            <b>B+ Tree</b>
+            <span>Primary storage for every relation.<br>No separate data copy allowed.</span>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box">
+            <b>Table Layer</b>
+            <span>Schema validation + primary-key routing on top of B+ Tree.</span>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box">
+            <b>Transaction Manager</b>
+            <span>BEGIN / COMMIT / ROLLBACK · before/after images · table-level locks</span>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box accent">
+            <b>WAL (Write-Ahead Log)</b>
+            <span>fsync'd to disk before every B+ Tree mutation. ARIES recovery on restart.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Assignment 2 Relations (B+ Tree Backed)</div>
+        <div id="dash-tables" class="loading">Loading…</div>
+      </div>
+    </div>
+
+    <!-- ATOMICITY -->
+    <div id="view-atomicity" class="view">
+      <div class="page-hdr">
+        <h1>💥 Atomicity Test</h1>
+        <p>A transaction spanning Assignment 2 relations is crashed mid-way. The database must be identical to the pre-crash state.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">What Happens</div>
+        <ol class="steps-list">
+          <li>Transaction begins across <b>Booking</b>, <b>Facility</b>, and <b>Complaint</b></li>
+          <li>Creates a temporary booking for member M01</li>
+          <li>Changes Facility 1 status to Maintenance and files a complaint</li>
+          <li>⚡ Power failure simulated — CRASH injected</li>
+          <li>ROLLBACK undoes all changes using WAL <i>before_images</i></li>
+          <li>Pre-state == Post-state → <b>Atomicity verified</b></li>
+        </ol>
+        <button class="btn btn-primary" onclick="runAcid('atomicity')">▶ Run Atomicity Test</button>
+        <div id="result-atomicity" class="result-box hidden"></div>
+      </div>
+    </div>
+
+    <!-- CONSISTENCY -->
+    <div id="view-consistency" class="view">
+      <div class="page-hdr">
+        <h1>✅ Consistency Test</h1>
+        <p>An invalid facility state must be caught before any B+ Tree mutation occurs.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">What Happens</div>
+        <ol class="steps-list">
+          <li>Transaction begins</li>
+          <li>Attempts to set Facility 2 status to <b>Broken</b> (invalid)</li>
+          <li>Constraint check fires <i>before</i> the WAL write</li>
+          <li>Transaction rolled back — B+ Tree never touched</li>
+          <li>Facility state unchanged → <b>Consistency verified</b></li>
+        </ol>
+        <button class="btn btn-primary" onclick="runAcid('consistency')">▶ Run Consistency Test</button>
+        <div id="result-consistency" class="result-box hidden"></div>
+      </div>
+    </div>
+
+    <!-- ISOLATION -->
+    <div id="view-isolation" class="view">
+      <div class="page-hdr">
+        <h1>🔒 Isolation Test</h1>
+        <p>Two concurrent transactions run simultaneously. Transaction B must never see Transaction A's uncommitted facility update.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">What Happens</div>
+        <ol class="steps-list">
+          <li>Txn A and Txn B both start at the same instant (barrier sync)</li>
+          <li>Txn A reads Facility 2 status, waits 80ms, then writes Maintenance</li>
+          <li>Txn B reads Facility 2 status <i>immediately</i> — must see original value</li>
+          <li>Table-level <code>threading.RLock</code> serialises access</li>
+          <li>No dirty reads → <b>Isolation verified</b></li>
+        </ol>
+        <button class="btn btn-primary" onclick="runAcid('isolation')">▶ Run Isolation Test</button>
+        <div id="result-isolation" class="result-box hidden"></div>
+      </div>
+    </div>
+
+    <!-- DURABILITY -->
+    <div id="view-durability" class="view">
+      <div class="page-hdr">
+        <h1>🔨 Durability Test</h1>
+        <p>Committed booking data must survive a system restart. The WAL is the only persistence layer.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">What Happens</div>
+        <ol class="steps-list">
+          <li>INSERT a new booking and COMMIT (WAL is fsync'd)</li>
+          <li>Wipe the in-memory B+ Tree (simulates power-off)</li>
+          <li>Record is gone from memory</li>
+          <li>ARIES recovery replays WAL: REDO committed txns</li>
+          <li>Record reappears → <b>Durability verified</b></li>
+        </ol>
+        <button class="btn btn-primary" onclick="runAcid('durability')">▶ Run Durability Test</button>
+        <div id="result-durability" class="result-box hidden"></div>
+      </div>
+    </div>
+
+    <!-- MULTI-TABLE -->
+    <div id="view-multi" class="view">
+      <div class="page-hdr">
+        <h1>🔗 3-Table Atomic Transaction</h1>
+        <p>The core requirement: a single transaction that spans real Assignment 2 relations at once.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Transaction Parameters</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Member</label>
+            <select id="multi-member">
+              <option value="M01">M01 — Rahul Sharma</option>
+              <option value="M02">M02 — Neha Singh</option>
+              <option value="M03">M03 — Aman Verma</option>
+              <option value="M04" selected>M04 — Priya Mehta</option>
+              <option value="M05">M05 — Rohan Das</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Facility</label>
+            <select id="multi-facility">
+              <option value="1">1 — Football Ground</option>
+              <option value="2">2 — Basketball Court</option>
+              <option value="3">3 — Cricket Stadium</option>
+              <option value="4" selected>4 — Badminton Hall</option>
+              <option value="5">5 — Swimming Pool</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Mode</label>
+            <select id="multi-fail">
+              <option value="false">✅ Normal commit</option>
+              <option value="true">⚡ Inject failure mid-txn</option>
+            </select>
+          </div>
+        </div>
+        <div class="action-row action-row-split">
+          <button class="btn btn-ghost" onclick="updateAllFacilities()">↺ Set Maintenance Facilities Available</button>
+          <button class="btn btn-primary" onclick="runMulti()">▶ Execute 3-Table Transaction</button>
+        </div>
+        <div id="result-multi" class="result-box hidden"></div>
+      </div>
+    </div>
+
+    <!-- MANUAL TXN -->
+    <div id="view-manual" class="view">
+      <div class="page-hdr">
+        <h1>🛠 Manual Transaction Playground</h1>
+        <p>Build your own transactions step by step. See exactly what happens to the B+ Tree and WAL.</p>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">Transaction Control</div>
+          <div id="manual-txn-id" class="mono-badge hidden"></div>
+
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="manualBegin()">BEGIN</button>
+            <button class="btn btn-success" onclick="manualCommit()" disabled id="btn-commit">COMMIT</button>
+            <button class="btn btn-danger"  onclick="manualRollback()" disabled id="btn-rollback">ROLLBACK</button>
+          </div>
+
+          <div id="manual-op-panel" class="hidden">
+            <div class="sep"></div>
+            <div class="form-group">
+              <label>Operation</label>
+              <select id="man-op">
+                <option value="insert">INSERT</option>
+                <option value="update">UPDATE</option>
+                <option value="delete">DELETE</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Table</label>
+              <select id="man-table" onchange="manualTableChange()">
+                <option value="Member">Member</option>
+                <option value="Facility">Facility</option>
+                <option value="Booking">Booking</option>
+                <option value="Complaint">Complaint</option>
+              </select>
+            </div>
+            <div class="form-group" id="man-key-group">
+              <label>Key (for UPDATE / DELETE)</label>
+              <input id="man-key" type="text" placeholder="e.g. M01 or 1"/>
+            </div>
+            <div class="form-group">
+              <label>Record JSON (for INSERT / UPDATE)</label>
+              <textarea id="man-record" rows="4" placeholder='{"Member_ID":"M06","Name":"New Member","Gender":"F","Email":"user6@iitgn.ac.in","Phone_Number":"900000006","Age":23,"DOB":"","Image":""}'></textarea>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="manualExec()">Execute Operation</button>
+          </div>
+
+          <div id="manual-log" class="op-log"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Live Table State</div>
+          <div id="manual-tables" class="loading">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLES -->
+    <div id="view-tables" class="view">
+      <div class="page-hdr">
+        <h1>📅 Live B+ Tree Tables</h1>
+        <p>Real-time view of the Assignment 2 sports-club records stored inside the B+ Tree relations.</p>
+      </div>
+      <div style="text-align:right;margin-bottom:12px">
+        <button class="btn btn-ghost btn-sm" onclick="loadTables()">↺ Refresh</button>
+      </div>
+      <div id="tables-view" class="loading">Loading…</div>
+    </div>
+
+    <!-- WAL -->
+    <div id="view-wal" class="view">
+      <div class="page-hdr">
+        <h1>🧾 Write-Ahead Log</h1>
+        <p>Every operation is written here <b>before</b> the B+ Tree is touched. This enables crash recovery.</p>
+      </div>
+      <div style="text-align:right;margin-bottom:12px">
+        <button class="btn btn-ghost btn-sm" onclick="loadWal()">↺ Refresh</button>
+      </div>
+      <div id="wal-view" class="loading">Loading…</div>
+    </div>
+
+    <!-- RECOVERY -->
+    <div id="view-recovery" class="view">
+      <div class="page-hdr">
+        <h1>♻️ ARIES Crash Recovery</h1>
+        <p>3-phase recovery: Analysis → REDO committed txns → UNDO losers.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">How Recovery Works</div>
+        <div class="arch-grid" style="grid-template-columns:1fr auto 1fr auto 1fr">
+          <div class="arch-box">
+            <b>Phase 1: Analysis</b>
+            <span>Scan WAL. Classify each txn as committed, aborted, or loser (no COMMIT record).</span>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box accent">
+            <b>Phase 2: REDO</b>
+            <span>Replay all ops for committed txns using <i>after_images</i>. Re-applies lost writes.</span>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box">
+            <b>Phase 3: UNDO</b>
+            <span>Reverse all ops for loser txns in reverse order using <i>before_images</i>.</span>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:18px" onclick="runRecovery()">▶ Run Recovery Now</button>
+        <div id="result-recovery" class="result-box hidden"></div>
+      </div>
+    </div>
+
+    <!-- STRESS -->
+    <div id="view-stress" class="view">
+      <div class="page-hdr">
+        <h1>🏁 Race Condition Test</h1>
+        <p>Identify a critical booking operation, fire many concurrent members at the same facility slot, and verify there is no double booking or corrupted final state.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">What Happens</div>
+        <ol class="steps-list">
+          <li>Create one temporary facility slot for booking</li>
+          <li>Spawn many members trying to reserve that exact same slot together</li>
+          <li>Hold the booking path under shared transaction locks while reads and writes happen</li>
+          <li>Verify successes, rejections, and final booking count all match perfectly</li>
+          <li>Clean up temporary records after the run</li>
+        </ol>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Concurrent Members</label>
+            <input id="stress-attempts" type="number" min="2" max="40" value="12"/>
+          </div>
+          <div class="form-group">
+            <label>Allowed Winners</label>
+            <input id="stress-stock" type="number" min="1" max="3" value="1"/>
+          </div>
+          <div class="form-group">
+            <label>Artificial Delay (ms)</label>
+            <input id="stress-delay" type="number" min="0" max="250" value="40"/>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="runStress()">▶ Run Race Condition Test</button>
+        <div id="result-stress" class="result-box hidden"></div>
+      </div>
+    </div>
+
+    <div id="view-loadtest" class="view">
+      <div class="page-hdr">
+        <h1>⚙️ Stress Testing</h1>
+        <p>Run hundreds or thousands of requests, observe system behaviour under load, and measure correctness plus response time.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">What Happens</div>
+        <ol class="steps-list">
+          <li>Launch many concurrent requests using an locust</li>
+          <li>Mix repeated table snapshots and WAL summary reads</li>
+          <li>Check every response shape for correctness</li>
+          <li>Measure throughput, average latency, p95 latency, and max latency</li>
+          <li>Report all failures seen under load</li>
+        </ol>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Total Requests</label>
+            <input id="load-requests" type="number" min="100" max="5000" value="500"/>
+          </div>
+          <div class="form-group">
+            <label>Concurrency</label>
+            <input id="load-concurrency" type="number" min="2" max="100" value="20"/>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="runLoadStress()">▶ Run Stress Test</button>
+        <div id="result-loadtest" class="result-box hidden"></div>
+      </div>
+    </div>
+
+  </main><!-- /.main -->
+</div><!-- /.shell -->
+
+<script src="/static/js/api.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
