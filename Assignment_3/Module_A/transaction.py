@@ -297,11 +297,11 @@ def recover(db_manager, wal=None):
         elif entry["op"] not in ("BEGIN", "ROLLBACK"):
             txns[tid]["ops"].append(entry)
 
-    committed_ids = sorted(tid for tid, data in txns.items() if data["committed"])
-    loser_ids = sorted(
+    committed_ids = [tid for tid, data in txns.items() if data["committed"]]
+    loser_ids = [
         tid for tid, data in txns.items()
         if not data["committed"] and not data["rolled_back"]
-    )
+    ]
 
     for tid in committed_ids:
         print(f"[RECOVERY] {tid} — COMMITTED, redoing {len(txns[tid]['ops'])} op(s)...")
