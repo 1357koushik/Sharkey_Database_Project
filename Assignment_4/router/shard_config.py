@@ -1,36 +1,47 @@
 """
-shard_config.py — Assignment 4 sharding config on top of Assignment 3 engine.
-Runtime storage uses Assignment 3 B+Tree + WAL engine instances.
+shard_config.py — Assignment 4 sharding config on top of MySQL shards.
 """
 
 import os
-import sys
 from copy import deepcopy
+
+try:
+    import pymysql
+    from pymysql.cursors import DictCursor
+except Exception as exc:  # pragma: no cover
+    raise RuntimeError(
+        "PyMySQL is required. Install with: py -m pip install pymysql"
+    ) from exc
 
 NUM_SHARDS = 3
 
-MODULE_A_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "..", "Assignment_3", "Module_A")
-)
-if MODULE_A_PATH not in sys.path:
-    sys.path.insert(0, MODULE_A_PATH)
+SHARD_HOST = os.getenv("SHARD_DB_HOST", "10.0.116.184")
+SHARD_USER = os.getenv("SHARD_DB_USER", "Sharkey")
+SHARD_PASSWORD = os.getenv("SHARD_DB_PASSWORD", "password@123")
+SHARD_DATABASE = os.getenv("SHARD_DB_NAME", "Sharkey")
+SHARD_PORTS = {
+    0: int(os.getenv("SHARD_1_PORT", "3307")),
+    1: int(os.getenv("SHARD_2_PORT", "3308")),
+    2: int(os.getenv("SHARD_3_PORT", "3309")),
+}
 
-from db_manager import DatabaseManager
-
-LOGS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "logs"))
-os.makedirs(LOGS_DIR, exist_ok=True)
-
-SHARD_DATABASES = {sid: f"shard_db_{sid}" for sid in range(NUM_SHARDS)}
+SHARD_DATABASES = {sid: SHARD_DATABASE for sid in range(NUM_SHARDS)}
 SHARD_ENDPOINTS = {
     sid: {
-        "backend": "assignment3-engine",
+        "backend": "mysql",
+        "host": SHARD_HOST,
+        "port": SHARD_PORTS[sid],
+        "username": SHARD_USER,
         "database": SHARD_DATABASES[sid],
         "shard_index": sid,
         "shard_id": sid + 1,
     }
     for sid in range(NUM_SHARDS)
 }
-SHARD_PATHS = {sid: f"assignment3-engine://{SHARD_DATABASES[sid]}" for sid in range(NUM_SHARDS)}
+SHARD_PATHS = {
+    sid: f"mysql://{SHARD_USER}@{SHARD_HOST}:{SHARD_PORTS[sid]}/{SHARD_DATABASES[sid]}"
+    for sid in range(NUM_SHARDS)
+}
 
 TABLE_SCHEMAS = {
     "Member": {
@@ -131,6 +142,97 @@ SEED_PLAYER_STATS = [
 ]
 
 
+def _sql_type(dtype: str) -> str:
+    return "INT" if dtype == "int" else "VARCHAR(255)"
+
+
+def _connect(shard_id: int, include_db: bool = True):
+    kwargs = {
+        "host": SHARD_HOST,
+        "port": SHARD_PORTS[shard_id],
+        "user": SHARD_USER,
+        "password": SHARD_PASSWORD,
+        "autocommit": True,
+        "cursorclass": DictCursor,
+        "connect_timeout": 10,
+        "read_timeout": 10,
+        "write_timeout": 10,
+    }
+    if include_db:
+        kwargs["database"] = SHARD_DATABASES[shard_id]
+    return pymysql.connect(**kwargs)
+
+
+def _ensure_database(shard_id: int):
+    with _connect(shard_id, include_db=False) as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"CREATE DATABASE IF NOT EXISTS `{SHARD_DATABASES[shard_id]}`")
+
+
+def _ensure_tables(shard_id: int):
+    with _connect(shard_id, include_db=True) as conn:
+        with conn.cursor() as cur:
+            for table_name, schema in TABLE_SCHEMAS.items():
+                cols = []
+                for col, dtype in schema.items():
+                    cols.append(f"`{col}` {_sql_type(dtype)}")
+                pk = SEARCH_KEYS[table_name]
+                ddl = (
+                    f"CREATE TABLE IF NOT EXISTS `{table_name}` ("
+                    f"{', '.join(cols)}, PRIMARY KEY (`{pk}`)"
+                    f") ENGINE=InnoDB"
+                )
+                cur.execute(ddl)
+
+
+def ensure_all_shards_ready():
+    for sid in range(NUM_SHARDS):
+        _ensure_database(sid)
+        _ensure_tables(sid)
+
+
+class MySQLTable:
+    def __init__(self, shard_id: int, table_name: str):
+        self.shard_id = shard_id
+        self.table_name = table_name
+        self.schema = TABLE_SCHEMAS[table_name]
+        self.search_key = SEARCH_KEYS[table_name]
+
+    def get_all(self):
+        with _connect(self.shard_id, include_db=True) as conn:
+            with conn.cursor() as cur:
+                cur.execute(f"SELECT * FROM `{self.table_name}`")
+                rows = cur.fetchall()
+        return [(row[self.search_key], row) for row in rows]
+
+    def get(self, key):
+        with _connect(self.shard_id, include_db=True) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    f"SELECT * FROM `{self.table_name}` WHERE `{self.search_key}`=%s LIMIT 1",
+                    (key,),
+                )
+                return cur.fetchone()
+
+    def insert(self, record: dict):
+        cols = [c for c in self.schema if c in record]
+        values = [record[c] for c in cols]
+        placeholders = ", ".join(["%s"] * len(cols))
+        col_sql = ", ".join([f"`{c}`" for c in cols])
+        sql = f"INSERT INTO `{self.table_name}` ({col_sql}) VALUES ({placeholders})"
+        with _connect(self.shard_id, include_db=True) as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, values)
+
+    def delete(self, key):
+        with _connect(self.shard_id, include_db=True) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    f"DELETE FROM `{self.table_name}` WHERE `{self.search_key}`=%s",
+                    (key,),
+                )
+
+
 def get_shard_id(member_id: str) -> int:
     if not isinstance(member_id, str) or len(member_id) < 2 or member_id[0] != "M":
         raise ValueError("Member_ID must be in format like 'M01'.")
@@ -142,7 +244,11 @@ def shard_label(shard_id: int) -> str:
 
 
 def shard_hostname(shard_id: int) -> str:
-    return f"assignment3-engine-shard-{shard_id + 1}"
+    with _connect(shard_id, include_db=True) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT @@hostname AS hostname")
+            row = cur.fetchone()
+            return str(row["hostname"])
 
 
 def get_table_columns(shard_id: int, table_name: str) -> set[str]:
@@ -150,40 +256,18 @@ def get_table_columns(shard_id: int, table_name: str) -> set[str]:
     return set(TABLE_SCHEMAS[table_name].keys())
 
 
-def _build_shard_manager(shard_id: int) -> DatabaseManager:
-    dbm = DatabaseManager()
-    dbm.wal.filepath = os.path.join(LOGS_DIR, f"shard_{shard_id}.wal.log")
-    dbm.recover()
-    db_name = SHARD_DATABASES[shard_id]
-    dbm.create_database(db_name)
-    for table_name, schema in TABLE_SCHEMAS.items():
-        dbm.create_table(
-            db_name,
-            table_name,
-            schema,
-            search_key=SEARCH_KEYS[table_name],
-        )
-    return dbm
-
-
-_SHARD_ENGINES = {sid: _build_shard_manager(sid) for sid in range(NUM_SHARDS)}
-
-
-def get_shard_manager(shard_id: int) -> DatabaseManager:
-    return _SHARD_ENGINES[shard_id]
-
-
 def get_shard_table(shard_id: int, table_name: str):
-    dbm = get_shard_manager(shard_id)
-    return dbm.get_table(SHARD_DATABASES[shard_id], table_name)
+    ensure_all_shards_ready()
+    return MySQLTable(shard_id, table_name)
 
 
 def clear_all_shards():
+    ensure_all_shards_ready()
     for sid in range(NUM_SHARDS):
-        for table_name in TABLE_SCHEMAS:
-            table = get_shard_table(sid, table_name)
-            for key, _ in list(table.get_all()):
-                table.delete(key)
+        with _connect(sid, include_db=True) as conn:
+            with conn.cursor() as cur:
+                for table_name in TABLE_SCHEMAS:
+                    cur.execute(f"DELETE FROM `{table_name}`")
 
 
 def _insert_rows(shard_id: int, table_name: str, rows: list[dict]):
@@ -193,6 +277,7 @@ def _insert_rows(shard_id: int, table_name: str, rows: list[dict]):
 
 
 def seed_demo_data(reset: bool = False):
+    ensure_all_shards_ready()
     if reset:
         clear_all_shards()
 
@@ -299,7 +384,3 @@ def expected_distribution(member_ids: list[str]) -> dict[int, list[str]]:
     for member_id in member_ids:
         dist[get_shard_id(member_id)].append(member_id)
     return dist
-
-
-# Always start this process with clean shard state.
-seed_demo_data(reset=True)

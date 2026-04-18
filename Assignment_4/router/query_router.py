@@ -1,5 +1,5 @@
 """
-query_router.py — shard-aware queries using Assignment 3 engine shards.
+query_router.py — shard-aware queries using MySQL shards.
 """
 
 import os

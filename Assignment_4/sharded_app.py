@@ -1,6 +1,6 @@
 """
 sharded_app.py — Flask API for Assignment 4 shard-aware routing.
-Runtime storage: Assignment 3 engine shards.
+Runtime storage: MySQL shards.
 """
 
 import os, sys
@@ -164,7 +164,7 @@ def api_shard_info():
         "strategy": "hash-based",
         "shard_key": "Member_ID",
         "routing_formula": "int(member_id[1:]) % num_shards",
-        "runtime_backend": "assignment3-engine",
+        "runtime_backend": "mysql",
         "shards": {
             f"shard_{sid + 1}": {
                 "shard_index": sid,

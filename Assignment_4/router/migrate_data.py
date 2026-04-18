@@ -1,5 +1,5 @@
 """
-migrate_data.py — repartition demo data across Assignment 3 engine shards.
+migrate_data.py — repartition demo data across MySQL shards.
 """
 
 import os

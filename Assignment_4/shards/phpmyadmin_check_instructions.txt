@@ -1,0 +1,56 @@
+phpMyAdmin and shard health check instructions (Team: Sharkey)
+
+1) Preconditions
+- Be connected to IITGN network (or VPN with IITGN access).
+- Ensure Apache + MySQL services are running on your local stack if needed for browser access.
+
+2) Open phpMyAdmin for each shard
+- Shard 1: http://10.0.116.184:8081
+- Shard 2: http://10.0.116.184:8082
+- Shard 3: http://10.0.116.184:8083
+
+Login (all shards):
+- Username: Sharkey
+- Password: password@123
+- Keep server field empty if the login page asks for it.
+- Do not use username "admin" for this assignment setup.
+
+3) Verify database and tables on each shard
+- Select database: Sharkey
+- Confirm these tables exist:
+  Member, Facility, Booking, Complaint, Attendance, Player_Stat
+
+4) Verify you are on the expected shard host
+Run in SQL tab:
+SELECT @@hostname;
+
+5) Verify sharded distribution (example checks)
+Run in SQL tab:
+SELECT COUNT(*) AS members FROM Member;
+SELECT Member_ID FROM Member ORDER BY Member_ID;
+
+Expected routing:
+- int(Member_ID numeric part) % 3 = 0 -> shard index 0 (port 3307)
+- int(Member_ID numeric part) % 3 = 1 -> shard index 1 (port 3308)
+- int(Member_ID numeric part) % 3 = 2 -> shard index 2 (port 3309)
+
+6) CLI alternative checks
+- mysql -h 10.0.116.184 -P 3307 -u Sharkey -p Sharkey
+- mysql -h 10.0.116.184 -P 3308 -u Sharkey -p Sharkey
+- mysql -h 10.0.116.184 -P 3309 -u Sharkey -p Sharkey
+
+Inside MySQL:
+SHOW DATABASES;
+USE Sharkey;
+SHOW TABLES;
+SELECT @@hostname;
+
+7) App-level validation
+- python router\init_shards.py
+- python router\migrate_data.py
+- python tests\verify_sharding.py
+
+8) Quick troubleshooting
+- Connection timeout/refused: check IITGN network access and firewall.
+- Access denied: verify Sharkey/password@123 credentials.
+- Missing tables: run init_shards.py again.

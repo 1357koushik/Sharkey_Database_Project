@@ -32,7 +32,7 @@ def verify_hash_distribution():
 
 
 def verify_engine_shards():
-    print("\n== B. Assignment3 Engine Shards =============================")
+    print("\n== B. MySQL Shards ==========================================")
     for sid in range(NUM_SHARDS):
         member_rows = len(get_shard_table(sid, "Member").get_all())
         check(f"shard_{sid} member table available", member_rows >= 0, f"rows={member_rows}")
