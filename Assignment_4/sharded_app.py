@@ -1,10 +1,6 @@
 """
-sharded_app.py  —  Minimal Flask API demonstrating shard-aware routing
-=======================================================================
-Extends the Assignment 2 members API.  Every endpoint uses the
-query_router module to direct requests to the correct shard.
-
-Run:  python3 sharded_app.py
+sharded_app.py — Flask API for Assignment 4 shard-aware routing.
+Runtime storage: Assignment 3 engine shards.
 """
 
 import os, sys
@@ -17,7 +13,13 @@ from query_router import (
     range_members_by_age, range_bookings_by_date,
     range_attendance_by_date, list_all_members
 )
-from shard_config import get_shard_id, NUM_SHARDS
+from shard_config import (
+    get_shard_id,
+    NUM_SHARDS,
+    SHARD_ENDPOINTS,
+    SHARD_PATHS,
+    shard_hostname,
+)
 
 app = Flask(__name__)
 
@@ -26,8 +28,15 @@ app = Flask(__name__)
 
 def shard_meta(member_id: str) -> dict:
     sid = get_shard_id(member_id)
-    return {"shard_id": sid, "shard_db": f"shard_{sid}.db",
-            "routing_formula": f"int('{member_id[1:]}') % {NUM_SHARDS} = {sid}"}
+    endpoint = SHARD_ENDPOINTS[sid]
+    return {
+        "shard_index": sid,
+        "shard_id": sid + 1,
+        "runtime_backend": endpoint["backend"],
+        "shard_endpoint": SHARD_PATHS[sid],
+        "database": endpoint["database"],
+        "routing_formula": f"int('{member_id[1:]}') % {NUM_SHARDS} = {sid}",
+    }
 
 
 # ── Lookup endpoints ─────────────────────────────────────────────────
@@ -141,16 +150,31 @@ def api_range_attendance():
 @app.route("/shards/info", methods=["GET"])
 def api_shard_info():
     """Returns shard topology metadata."""
-    from shard_config import SHARD_PATHS, expected_distribution
+    from shard_config import expected_distribution
     all_ids = [f"M{i:02d}" for i in range(1, 41)]
     dist = expected_distribution(all_ids)
+    hostnames = {}
+    for sid in range(NUM_SHARDS):
+        try:
+            hostnames[f"shard_{sid + 1}"] = shard_hostname(sid)
+        except Exception as exc:
+            hostnames[f"shard_{sid + 1}"] = f"unreachable: {exc}"
     return jsonify({
         "num_shards": NUM_SHARDS,
         "strategy": "hash-based",
         "shard_key": "Member_ID",
         "routing_formula": "int(member_id[1:]) % num_shards",
-        "shard_paths": SHARD_PATHS,
-        "distribution": {f"shard_{k}": v for k, v in dist.items()}
+        "runtime_backend": "assignment3-engine",
+        "shards": {
+            f"shard_{sid + 1}": {
+                "shard_index": sid,
+                "database": SHARD_ENDPOINTS[sid]["database"],
+                "endpoint": SHARD_PATHS[sid],
+            }
+            for sid in range(NUM_SHARDS)
+        },
+        "connected_hostnames": hostnames,
+        "distribution": {f"shard_{k + 1}": v for k, v in dist.items()}
     }), 200
 
 
