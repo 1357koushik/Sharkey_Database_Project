@@ -53,10 +53,7 @@ def get_player_stats(member_id: str) -> list[dict]:
 
 def get_member_complaints(member_id: str) -> list[dict]:
     sid = get_shard_id(member_id)
-    member_col = "Member_ID"
-    if "Member_ID" not in get_table_columns(sid, "Complaint"):
-        member_col = "Raised_By"
-    rows = [r for r in _all_rows(sid, "Complaint") if r.get(member_col) == member_id]
+    rows = [r for r in _all_rows(sid, "Complaint") if r.get("Raised_By") == member_id]
     return [{**r, "_shard_index": sid, "_shard": sid + 1} for r in rows]
 
 
@@ -161,11 +158,9 @@ def range_attendance_by_date(date_start: str, date_end: str) -> list[dict]:
 def range_complaints_by_date(date_start: str, date_end: str) -> list[dict]:
     results = []
     for sid in range(NUM_SHARDS):
-        cols = get_table_columns(sid, "Complaint")
-        date_col = "Date_Filed" if "Date_Filed" in cols else "Date"
-        rows = [r for r in _all_rows(sid, "Complaint") if date_start <= str(r.get(date_col, "")) <= date_end]
+        rows = [r for r in _all_rows(sid, "Complaint") if date_start <= str(r.get("Date_Filed", "")) <= date_end]
         results.extend([{**r, "_shard_index": sid, "_shard": sid + 1} for r in rows])
-    results.sort(key=lambda r: str(r.get("Date_Filed", r.get("Date", ""))))
+    results.sort(key=lambda r: str(r.get("Date_Filed", "")))
     return results
 
 

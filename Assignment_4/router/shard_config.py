@@ -69,10 +69,10 @@ TABLE_SCHEMAS = {
     },
     "Complaint": {
         "Complaint_ID": "str",
-        "Member_ID": "str",
+        "Raised_By": "str",
         "Description": "str",
         "Status": "str",
-        "Date": "str",
+        "Date_Filed": "str",
         "Resolved_By": "str",
     },
     "Attendance": {
@@ -336,10 +336,10 @@ def seed_demo_data(reset: bool = False):
             [
                 {
                     "Complaint_ID": complaint_id,
-                    "Member_ID": member_id,
+                    "Raised_By": member_id,
                     "Description": desc,
                     "Status": status,
-                    "Date": date,
+                    "Date_Filed": date,
                     "Resolved_By": resolved_by,
                 }
             ],
