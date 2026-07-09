@@ -119,3 +119,13 @@ To explore or run the distributed backend (Assignment 4):
    python Assignment_4/tests/verify_sharding.py
    ```
 
+## Contributors (Team 38)
+
+This project was developed by:
+* **Moram Koushik** (Roll No: 24220210)
+* **Busa Bhava Ram** (Roll No: 24110083)
+* **Dudekula Mukkesh** (Roll No: 24110114)
+* **Ambati Chaitanya Ram** (Roll No: 24110035)
+* **Cherukuri Harshith Sai** (Roll No: 24110091)
+
+
